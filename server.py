@@ -8,7 +8,9 @@ import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
 import docker
 from docker.errors import ContainerError, ImageNotFound, APIError
-
+#loading env 
+from dotenv import load_dotenv
+load_dotenv()
 # --- Configuration (Best practice: Use environment variables) ---
 # Object Store Config
 # S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL") # e.g., 'http://minio.example.com:9000'
@@ -22,6 +24,7 @@ S3_SECRET_KEY =os.environ.get("S3_SECRET_KEY")
 S3_REGION =  "eu-north-1"
 # Default Function Config (Static for now, as requested)
 DEFAULT_BUCKET_NAME = os.environ.get("DEFAULT_BUCKET_NAME", "faas-code") #
+
 DEFAULT_DOCKER_IMAGE = os.environ.get(
     "DEFAULT_DOCKER_IMAGE", "python:3.10-slim"
 )
@@ -202,4 +205,4 @@ if __name__ == "__main__":
         print("ERROR: Docker Client not initialized. Check Docker daemon and logs. Server will not start container operations.")
 
     # Run Flask dev server (for production, use a proper WSGI server like Gunicorn/uWSGI)
-    app.run(host="0.0.0.0", port=5000, debug=False) # Set debug=False for production/VM image
+    app.run(host="0.0.0.0", port=5000, debug=False) # Set debug=False for production/VM image:w
