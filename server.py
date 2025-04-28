@@ -206,6 +206,60 @@ def run_function():
                 logging.error(
                     f"Error cleaning up temporary directory {temp_dir}: {e}"
                 )
+@app.route("/upload", methods=["POST"])
+def upload_python_file():
+    if not swift_conn:
+        return (
+            jsonify({"error": "Swift client not initialized."}),
+            503,
+        )
+
+    # Check if the request has the file part
+    if "file" not in request.files:
+        return jsonify({"error": "No file part in the request."}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "No selected file."}), 400
+
+    # Only allow .py files
+    if not file.filename.endswith(".py"):
+        return jsonify({"error": "Only .py files are allowed."}), 400
+
+    # Generate a unique object key (or use the filename)
+    object_key = f"{uuid.uuid4().hex}_{file.filename}"
+
+    try:
+        # Read file content
+        file_content = file.read()
+
+        # Upload to Swift
+        swift_conn.put_object(
+            container=DEFAULT_CONTAINER_NAME,
+            obj=object_key,
+            contents=file_content,
+            content_type="text/x-python"
+        )
+
+        logging.info(
+            f"Uploaded file '{file.filename}' as '{object_key}' to Swift container '{DEFAULT_CONTAINER_NAME}'"
+        )
+
+        return (
+            jsonify(
+                {
+                    "message": "File uploaded successfully.",
+                    "object_key": object_key,
+                    "container": DEFAULT_CONTAINER_NAME,
+                }
+            ),
+            201,
+        )
+
+    except Exception as e:
+        logging.error(f"Error uploading file to Swift: {e}")
+        return jsonify({"error": f"Failed to upload file: {str(e)}"}), 500
 
 if __name__ == "__main__":
     if not swift_conn:
