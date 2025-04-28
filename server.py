@@ -260,6 +260,18 @@ def upload_python_file():
     except Exception as e:
         logging.error(f"Error uploading file to Swift: {e}")
         return jsonify({"error": f"Failed to upload file: {str(e)}"}), 500
+@app.route("/list-objects", methods=["GET"])
+def list_objects():
+    if not swift_conn:
+        return jsonify({"error": "Swift client not initialized."}), 503
+    try:
+        # List all objects in the default container
+        objects = swift_conn.get_container(DEFAULT_CONTAINER_NAME)[1]
+        object_keys = [obj["name"] for obj in objects]
+        return jsonify({"object_keys": object_keys}), 200
+    except Exception as e:
+        logging.error(f"Error listing objects in Swift: {e}")
+        return jsonify({"error": f"Failed to list objects: {str(e)}"}), 500
 
 if __name__ == "__main__":
     if not swift_conn:
